@@ -1,0 +1,24 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+  
+    avoid_print: false
+    
+    prefer_const_constructors: true 
+    prefer_final_locals: true
+    prefer_final_parameters: true
+    
+    avoid_redundant_argument_values: true
+    
+    always_specify_types: false 
+    
+    unnecessary_parenthesis: false 
+    
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    
+  errors:
+    must_be_immutable: error
