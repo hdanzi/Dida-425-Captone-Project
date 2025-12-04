@@ -1,0 +1,16 @@
+[
+  {
+    "happiness": 20,
+    "sadness": 80,
+    "stress": 30,
+    "energy": 40,
+    "timestamp": "2025-12-03T20:56:12.913883"
+  },
+  {
+    "happiness": 30,
+    "sadness": 70,
+    "stress": 30,
+    "energy": 80,
+    "timestamp": "2025-12-03T21:01:42.227316"
+  }
+]

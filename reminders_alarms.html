@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StudyBreak – Reminders &amp; Alarms</title>
+    <link rel="stylesheet" href="studybreak.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="section-card">
+        <div class="section-header">
+          <h1 class="section-title">⏰ Reminders &amp; Alarms</h1>
+          <a class="back-link" href="index.html">← Back to Home</a>
+        </div>
+
+        <p class="help-text">
+          Create gentle nudges for future you. Suggested reminders are always
+          there; you can add and remove your own alarms as you like.
+        </p>
+
+        <div class="reminder-lists">
+          <div>
+            <div class="reminder-group-title">
+              💡 Suggested Mental Health Reminders
+            </div>
+            <div id="suggested-list"></div>
+          </div>
+          <div>
+            <div class="reminder-group-title">
+              🔔 Your Custom Alarms &amp; Reminders
+            </div>
+            <div id="custom-list"></div>
+          </div>
+        </div>
+
+        <hr style="margin: 18px 0" />
+
+        <h2 style="margin-top: 0">Add Wake‑Up Alarm</h2>
+        <div class="form-row">
+          <input
+            type="text"
+            id="wake-title"
+            placeholder="Wake‑Up Alarm"
+            value="Wake‑Up Alarm"
+          />
+          <input type="time" id="wake-time" />
+          <button class="secondary-button" id="add-wake">
+            Add Alarm
+          </button>
+        </div>
+
+        <h2 style="margin-top: 16px">Add General Reminder</h2>
+        <div class="form-row">
+          <input
+            type="text"
+            id="rem-title"
+            placeholder="e.g., Check calendar, Meditate"
+          />
+          <input type="time" id="rem-time" />
+          <button class="secondary-button" id="add-rem">
+            Add Reminder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "studybreak_reminders";
+      const suggestedSeed = [
+        {
+          id: "s1",
+          title: "Take a 5‑minute deep breathing break",
+          time: "10:00",
+          isSuggested: true,
+        },
+        {
+          id: "s2",
+          title: "Drink a glass of water",
+          time: "14:30",
+          isSuggested: true,
+        },
+        {
+          id: "s3",
+          title: "Write down 3 things you're grateful for",
+          time: "20:00",
+          isSuggested: true,
+        },
+      ];
+
+      function loadReminders() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            return suggestedSeed.slice();
+          }
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed) || parsed.length === 0) {
+            return suggestedSeed.slice();
+          }
+          return parsed;
+        } catch (e) {
+          return suggestedSeed.slice();
+        }
+      }
+
+      function saveReminders(list) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        } catch (e) {
+          console.error("Failed to save reminders", e);
+        }
+      }
+
+      function renderReminders() {
+        const all = loadReminders();
+        const suggested = all.filter((r) => r.isSuggested);
+        const custom = all.filter((r) => !r.isSuggested);
+
+        const suggestedList = document.getElementById("suggested-list");
+        const customList = document.getElementById("custom-list");
+
+        suggestedList.innerHTML = "";
+        if (suggested.length === 0) {
+          suggestedList.innerHTML =
+            '<div class="reminder-item">No suggested reminders.</div>';
+        } else {
+          suggested.forEach((r) => {
+            const div = document.createElement("div");
+            div.className = "reminder-item";
+            div.innerHTML = `
+              <div>💡 <strong>${r.title}</strong></div>
+              <div class="reminder-meta">at ${r.time}</div>
+            `;
+            suggestedList.appendChild(div);
+          });
+        }
+
+        customList.innerHTML = "";
+        if (custom.length === 0) {
+          customList.innerHTML =
+            '<div class="reminder-item">No custom reminders yet. Add one below!</div>';
+        } else {
+          custom.forEach((r) => {
+            const div = document.createElement("div");
+            div.className = "reminder-item";
+            div.innerHTML = `
+              <div>⏰ <strong>${r.title}</strong></div>
+              <div class="reminder-meta">
+                at ${r.time}
+                <span class="danger-link" data-id="${r.id}">delete</span>
+              </div>
+            `;
+            customList.appendChild(div);
+          });
+
+          customList
+            .querySelectorAll(".danger-link")
+            .forEach((el) =>
+              el.addEventListener("click", () => {
+                const id = el.getAttribute("data-id");
+                const updated = all.filter((r) => r.id !== id);
+                saveReminders(updated);
+                renderReminders();
+              }),
+            );
+        }
+      }
+
+      function addReminderFromInputs(titleId, timeId) {
+        const title = document.getElementById(titleId).value.trim();
+        const time = document.getElementById(timeId).value;
+        if (!title || !time) {
+          alert("Please enter a title and time.");
+          return;
+        }
+
+        const all = loadReminders();
+        const id = "c" + Date.now().toString(36) + Math.random().toString(36);
+        all.push({
+          id,
+          title,
+          time,
+          isSuggested: false,
+        });
+        saveReminders(all);
+        renderReminders();
+      }
+
+      document
+        .getElementById("add-wake")
+        .addEventListener("click", () =>
+          addReminderFromInputs("wake-title", "wake-time"),
+        );
+
+      document
+        .getElementById("add-rem")
+        .addEventListener("click", () =>
+          addReminderFromInputs("rem-title", "rem-time"),
+        );
+
+      renderReminders();
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StudyBreak – Mood Tracking</title>
+    <link rel="stylesheet" href="studybreak.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="section-card">
+        <div class="section-header">
+          <h1 class="section-title">😊 Mood Tracking</h1>
+          <a class="back-link" href="index.html">← Back to Home</a>
+        </div>
+
+        <p class="help-text">
+          Take a moment to check in with yourself. Slide each bar to match
+          how you feel right now, then save your entry.
+        </p>
+
+        <div class="field-group">
+          <label class="field-label" for="happiness">Happiness</label>
+          <div class="slider-row">
+            <input
+              id="happiness"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+            <span class="slider-value" id="happiness-value">50</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="sadness">Sadness</label>
+          <div class="slider-row">
+            <input id="sadness" type="range" min="0" max="100" value="50" />
+            <span class="slider-value" id="sadness-value">50</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="stress">Stress</label>
+          <div class="slider-row">
+            <input id="stress" type="range" min="0" max="100" value="50" />
+            <span class="slider-value" id="stress-value">50</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="energy">Energy</label>
+          <div class="slider-row">
+            <input id="energy" type="range" min="0" max="100" value="70" />
+            <span class="slider-value" id="energy-value">70</span>
+          </div>
+        </div>
+
+        <button class="primary-button" id="save-button">
+          Save Mood Entry
+        </button>
+
+        <h2 style="margin-top: 22px">Mood History</h2>
+        <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 4px">
+          Your recent check‑ins will appear here on this device.
+        </p>
+        <div id="history" class="history-list"></div>
+      </div>
+    </div>
+
+    <script>
+      const sliders = ["happiness", "sadness", "stress", "energy"];
+      sliders.forEach((name) => {
+        const input = document.getElementById(name);
+        const label = document.getElementById(name + "-value");
+        input.addEventListener("input", () => {
+          label.textContent = input.value;
+        });
+      });
+
+      const STORAGE_KEY = "studybreak_mood_history";
+
+      function loadHistory() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveHistory(history) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        } catch (e) {
+          console.error("Failed to save mood history", e);
+        }
+      }
+
+      function renderHistory() {
+        const container = document.getElementById("history");
+        const history = loadHistory().slice().reverse();
+
+        if (history.length === 0) {
+          container.innerHTML =
+            '<div class="history-item">No entries yet. Try saving how you feel today.</div>';
+          return;
+        }
+
+        container.innerHTML = "";
+        history.forEach((entry) => {
+          const dt = new Date(entry.timestamp);
+          const timeLabel = dt.toLocaleString(undefined, {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          const div = document.createElement("div");
+          div.className = "history-item";
+          div.innerHTML = `
+            <div>
+              <span class="pill-tag">😊 ${entry.happiness}</span>
+              <span class="pill-tag">😢 ${entry.sadness}</span>
+              <span class="pill-tag">😟 ${entry.stress}</span>
+              <span class="pill-tag">⚡ ${entry.energy}</span>
+            </div>
+            <div class="history-meta">${timeLabel}</div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      document
+        .getElementById("save-button")
+        .addEventListener("click", () => {
+          const history = loadHistory();
+          const entry = {
+            happiness: Number(document.getElementById("happiness").value),
+            sadness: Number(document.getElementById("sadness").value),
+            stress: Number(document.getElementById("stress").value),
+            energy: Number(document.getElementById("energy").value),
+            timestamp: new Date().toISOString(),
+          };
+          history.push(entry);
+          saveHistory(history);
+          renderHistory();
+        });
+
+      renderHistory();
+    </script>
+  </body>
+</html>
+
